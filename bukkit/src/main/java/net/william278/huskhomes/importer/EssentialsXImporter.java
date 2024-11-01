@@ -24,11 +24,14 @@ import com.earth2me.essentials.Warps;
 import com.earth2me.essentials.commands.WarpNotFoundException;
 import net.william278.huskhomes.BukkitHuskHomes;
 import net.william278.huskhomes.HuskHomes;
+import net.william278.huskhomes.position.Home;
+import net.william278.huskhomes.position.Warp;
 import net.william278.huskhomes.user.User;
 import net.william278.huskhomes.util.ValidationException;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -59,9 +62,17 @@ public class EssentialsXImporter extends Importer {
                 if (essentialsUser.getHome(homeName) == null || essentialsUser.getHome(homeName).getWorld() == null) {
                     continue;
                 }
+                String name = this.normalizeName(homeName);
+                Optional<Home> existingHome = plugin.getDatabase().getHome(user, name);
+                int count = 1;
+                while (existingHome.isPresent()) {
+                    name = name + count;
+                    existingHome = plugin.getDatabase().getHome(user, name);
+                    count++;
+                }
                 plugin.getManager().homes().createHome(
                         user,
-                        this.normalizeName(homeName),
+                        name,
                         BukkitHuskHomes.Adapter.adapt(essentialsUser.getHome(homeName), plugin.getServerName()),
                         true,
                         true,
@@ -81,8 +92,16 @@ public class EssentialsXImporter extends Importer {
                 if (warps.getWarp(warpName) == null || warps.getWarp(warpName).getWorld() == null) {
                     continue;
                 }
+                String name = this.normalizeName(warpName);
+                Optional<Warp> existingWarp = plugin.getDatabase().getWarp(name);
+                int count = 1;
+                while (existingWarp.isPresent()) {
+                    name = name + count;
+                    existingWarp = plugin.getDatabase().getWarp(name);
+                    count++;
+                }
                 plugin.getManager().warps().createWarp(
-                        this.normalizeName(warpName),
+                        name,
                         BukkitHuskHomes.Adapter.adapt(warps.getWarp(warpName), plugin.getServerName()),
                         true
                 );
