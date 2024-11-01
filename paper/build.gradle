@@ -39,6 +39,11 @@ shadowJar {
     relocate 'org.bstats', 'net.william278.huskhomes.libraries.bstats'
     relocate 'io.papermc.lib', 'net.william278.huskhomes.libraries.paperlib'
     relocate 'space.arim.morepaperlib', 'net.william278.huskhomes.libraries.paperlib'
+    relocate 'net.kyori.adventure', 'net.william278.huskhomes.libraries.adventure'
+    relocate 'net.kyori.examination', 'net.william278.huskhomes.libraries.examination'
+    relocate 'redis.clients.jedis', 'net.william278.huskhomes.libraries.jedis'
+    relocate 'org.slf4j', 'net.william278.huskhomes.libraries.slf4j'
+    relocate 'org.apache.commons.pool2', 'net.william278.huskhomes.libraries.commons.pool2'
 
     minimize()
 }
