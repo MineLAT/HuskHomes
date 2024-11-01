@@ -56,7 +56,19 @@ public class MySqlDatabase extends Database {
 
         final Type type = plugin.getSettings().getDatabase().getType();
         this.flavor = type.getProtocol();
-        this.driverClass = type == Type.MARIADB ? "org.mariadb.jdbc.Driver" : "com.mysql.cj.jdbc.Driver";
+
+        String driver;
+        if (type == Type.MARIADB) {
+            driver = "org.mariadb.jdbc.Driver";
+        } else {
+            try {
+                Class.forName("com.mysql.cj.jdbc.Driver");
+                driver = "com.mysql.cj.jdbc.Driver";
+            } catch (ClassNotFoundException t) {
+                driver = "com.mysql.jdbc.Driver";
+            }
+        }
+        this.driverClass = driver;
     }
 
     /**
