@@ -53,8 +53,18 @@ public class MySqlDatabase extends Database {
         super(plugin);
         this.flavor = plugin.getSettings().getDatabase().getType() == Type.MARIADB
                 ? "mariadb" : "mysql";
-        this.driverClass = plugin.getSettings().getDatabase().getType() == Type.MARIADB
-                ? "org.mariadb.jdbc.Driver" : "com.mysql.cj.jdbc.Driver";
+        String driver;
+        if (plugin.getSettings().getDatabase().getType() == Type.MARIADB) {
+            driver = "org.mariadb.jdbc.Driver";
+        } else {
+            try {
+                Class.forName("com.mysql.cj.jdbc.Driver");
+                driver = "com.mysql.cj.jdbc.Driver";
+            } catch (ClassNotFoundException t) {
+                driver = "com.mysql.jdbc.Driver";
+            }
+        }
+        this.driverClass = driver;
     }
 
     private Connection getConnection() throws SQLException {
