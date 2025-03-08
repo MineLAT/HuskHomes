@@ -26,6 +26,10 @@ unsafe_blocks:
   - 'minecraft:magma_block'
   - 'minecraft:campfire'
   - 'minecraft:soul_campfire'
+  - 'minecraft:stationary_water'
+  - 'minecraft:stationary_lava'
+  - 'minecraft:bed_block'
+  - 'minecraft:magma'
 
 # Blocks that are safe to teleport into
 safe_occupation_blocks:

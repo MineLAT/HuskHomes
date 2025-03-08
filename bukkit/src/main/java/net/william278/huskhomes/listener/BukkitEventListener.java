@@ -22,6 +22,7 @@ package net.william278.huskhomes.listener;
 import net.william278.huskhomes.BukkitHuskHomes;
 import net.william278.huskhomes.config.Settings;
 import org.bukkit.Location;
+import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Bed;
 import org.bukkit.block.data.type.RespawnAnchor;
 import org.bukkit.entity.Player;
@@ -33,6 +34,19 @@ import org.bukkit.event.player.*;
 import org.jetbrains.annotations.NotNull;
 
 public class BukkitEventListener extends EventListener implements Listener {
+
+    private static final boolean CHECK_MATERIAL;
+
+    static {
+        boolean checkMaterial = true;
+        try {
+            Class.forName("org.bukkit.block.data.type.Bed");
+            checkMaterial = false;
+        } catch (ClassNotFoundException ignored) {
+            // empty catch block
+        }
+        CHECK_MATERIAL = checkMaterial;
+    }
 
     protected boolean usePaperEvents = false;
 
@@ -95,8 +109,7 @@ public class BukkitEventListener extends EventListener implements Listener {
         if (usePaperEvents || !(crossServer.isEnabled()) && crossServer.isGlobalRespawning()) {
             return;
         }
-        if (event.getClickedBlock() == null || !(event.getClickedBlock().getBlockData() instanceof Bed
-                                                 || event.getClickedBlock().getBlockData() instanceof RespawnAnchor)) {
+        if (event.getClickedBlock() == null || !isBed(event.getClickedBlock())) {
             return;
         }
 
@@ -116,6 +129,14 @@ public class BukkitEventListener extends EventListener implements Listener {
     @NotNull
     protected BukkitHuskHomes getPlugin() {
         return (BukkitHuskHomes) super.getPlugin();
+    }
+
+    private boolean isBed(Block block) {
+        if (CHECK_MATERIAL) {
+            return block.getType().name().equalsIgnoreCase("BED_BLOCK");
+        } else {
+            return block.getBlockData() instanceof Bed || block.getBlockData() instanceof RespawnAnchor;
+        }
     }
 
 

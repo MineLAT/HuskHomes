@@ -44,6 +44,19 @@ import java.util.stream.Collectors;
  */
 public class BukkitUser extends OnlineUser {
 
+    private static final boolean USE_PERSISTENT_DATA;
+
+    static {
+        boolean usePersistentData = false;
+        try {
+            Class.forName("org.bukkit.persistence.PersistentDataType");
+            usePersistentData = true;
+        } catch (ClassNotFoundException ignored) {
+            // empty catch block
+        }
+        USE_PERSISTENT_DATA = usePersistentData;
+    }
+
     private static final String VANISHED_META_KEY = "vanished";
     private final NamespacedKey INVULNERABLE_KEY = new NamespacedKey((BukkitHuskHomes) plugin, "invulnerable");
     private final Player bukkitPlayer;
@@ -152,7 +165,10 @@ public class BukkitUser extends OnlineUser {
 
     @Override
     public boolean hasInvulnerability() {
-        return markedAsInvulnerable || bukkitPlayer.getPersistentDataContainer()
+        if (markedAsInvulnerable) {
+            return true;
+        }
+        return USE_PERSISTENT_DATA && bukkitPlayer.getPersistentDataContainer()
                 .has(INVULNERABLE_KEY, PersistentDataType.INTEGER);
     }
 
@@ -163,7 +179,9 @@ public class BukkitUser extends OnlineUser {
             return;
         }
         markedAsInvulnerable = true;
-        bukkitPlayer.getPersistentDataContainer().set(INVULNERABLE_KEY, PersistentDataType.INTEGER, 1);
+        if (USE_PERSISTENT_DATA) {
+            bukkitPlayer.getPersistentDataContainer().set(INVULNERABLE_KEY, PersistentDataType.INTEGER, 1);
+        }
         bukkitPlayer.setInvulnerable(true);
         plugin.runSyncDelayed(this::removeInvulnerabilityIfPermitted, this, invulnerableTicks);
     }
@@ -173,7 +191,9 @@ public class BukkitUser extends OnlineUser {
         if (this.hasInvulnerability()) {
             bukkitPlayer.setInvulnerable(false);
         }
-        bukkitPlayer.getPersistentDataContainer().remove(INVULNERABLE_KEY);
+        if (USE_PERSISTENT_DATA) {
+            bukkitPlayer.getPersistentDataContainer().remove(INVULNERABLE_KEY);
+        }
         markedAsInvulnerable = false;
     }
 

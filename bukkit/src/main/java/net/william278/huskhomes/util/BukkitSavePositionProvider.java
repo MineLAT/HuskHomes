@@ -81,9 +81,9 @@ public interface BukkitSavePositionProvider extends SavePositionProvider {
                 final Material blockType = chunk.getBlockType(x, y - 1, z);
                 final Material bodyBlockType = chunk.getBlockType(x, y, z);
                 final Material headBlockType = chunk.getBlockType(x, y + 1, z);
-                if (isBlockSafeForStanding(blockType.getKey().toString())
-                        && isBlockSafeForOccupation(bodyBlockType.getKey().toString())
-                        && isBlockSafeForOccupation(headBlockType.getKey().toString())) {
+                if (isBlockSafeForStanding(getNamespacedKey(blockType))
+                        && isBlockSafeForOccupation(getNamespacedKey(bodyBlockType))
+                        && isBlockSafeForOccupation(getNamespacedKey(headBlockType))) {
                     double locx = Math.floor(location.getX()) + dx;
                     if (locx < 0) {
                         locx += 1.5d;
@@ -108,8 +108,21 @@ public interface BukkitSavePositionProvider extends SavePositionProvider {
         return Optional.empty();
     }
 
+    private String getNamespacedKey(Material material) {
+        try {
+            return material.getKey().toString();
+        } catch (Throwable t) {
+            return "minecraft:" + material.name().toLowerCase();
+        }
+    }
+
     private int getMinHeight(World world) {
-        int minHeight = world.getMinHeight();
+        int minHeight;
+        try {
+            minHeight = world.getMinHeight();
+        } catch (Throwable t) {
+            minHeight = 0;
+        }
         for (String pair : getPlugin().getSettings().getRtp().getMinHeight()) {
             String worldName = pair.split(":")[0];
             int settingsHeight = Integer.parseInt(pair.split(":")[1]);
