@@ -22,18 +22,17 @@ package net.william278.huskhomes;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.pokeskies.fabricpluginmessaging.PluginMessageEvent;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.kyori.adventure.audience.Audience;
-//#if MC==12104
+//#if MC>=12104
 import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
 //#else
 //$$ import net.kyori.adventure.platform.fabric.FabricServerAudiences;
@@ -63,7 +62,6 @@ import net.william278.huskhomes.listener.EventListener;
 import net.william278.huskhomes.listener.FabricEventListener;
 import net.william278.huskhomes.manager.Manager;
 import net.william278.huskhomes.network.Broker;
-import net.william278.huskhomes.network.FabricPluginMessage;
 import net.william278.huskhomes.network.PluginMessageBroker;
 import net.william278.huskhomes.position.Location;
 import net.william278.huskhomes.position.Position;
@@ -93,15 +91,14 @@ import java.util.logging.Level;
 @Getter
 @NoArgsConstructor
 public class FabricHuskHomes implements DedicatedServerModInitializer, HuskHomes, FabricTask.Supplier,
-        FabricEventDispatcher, FabricSavePositionProvider, FabricUserProvider, FabricHookProvider,
-        ServerPlayNetworking.PlayPayloadHandler<FabricPluginMessage> {
+        FabricEventDispatcher, FabricSavePositionProvider, FabricUserProvider, FabricHookProvider {
 
     public static final Logger LOGGER = LoggerFactory.getLogger("HuskHomes");
     private final ModContainer modContainer = FabricLoader.getInstance().getModContainer("huskhomes")
             .orElseThrow(() -> new RuntimeException("Failed to get Mod Container"));
     private final Map<String, Boolean> permissions = Maps.newHashMap();
 
-    //#if MC==12104
+    //#if MC>=12104
     private MinecraftServerAudiences audiences;
     //#else
     //$$ private FabricServerAudiences audiences;
@@ -152,7 +149,7 @@ public class FabricHuskHomes implements DedicatedServerModInitializer, HuskHomes
     private void onEnable(@NotNull MinecraftServer server) {
         this.minecraftServer = server;
         this.toilet = FabricToilet.create(getDumpOptions(), server);
-        //#if MC==12104
+        //#if MC>=12104
         this.audiences = MinecraftServerAudiences.of(minecraftServer);
         //#else
         //$$ this.audiences = FabricServerAudiences.of(minecraftServer);
@@ -290,22 +287,16 @@ public class FabricHuskHomes implements DedicatedServerModInitializer, HuskHomes
 
     @Override
     public void setupPluginMessagingChannels() {
-        PayloadTypeRegistry.playC2S().register(FabricPluginMessage.CHANNEL_ID, FabricPluginMessage.CODEC);
-        PayloadTypeRegistry.playS2C().register(FabricPluginMessage.CHANNEL_ID, FabricPluginMessage.CODEC);
-        ServerPlayNetworking.registerGlobalReceiver(FabricPluginMessage.CHANNEL_ID, this);
-    }
-
-    // When the server receives a plugin message
-    @Override
-    public void receive(@NotNull FabricPluginMessage payload, @NotNull ServerPlayNetworking.Context context) {
-        if (broker instanceof PluginMessageBroker messenger
-            && getSettings().getCrossServer().getBrokerType() == Broker.Type.PLUGIN_MESSAGE) {
-            messenger.onReceive(
-                    PluginMessageBroker.BUNGEE_CHANNEL_ID,
-                    getOnlineUser(context.player()),
-                    payload.getData()
-            );
-        }
+        PluginMessageEvent.EVENT.register((payload, context) -> {
+            if (broker instanceof PluginMessageBroker messenger
+                && getSettings().getCrossServer().getBrokerType() == Broker.Type.PLUGIN_MESSAGE) {
+                messenger.onReceive(
+                        PluginMessageBroker.BUNGEE_CHANNEL_ID,
+                        getOnlineUser(context.player()),
+                        payload.getData()
+                );
+            }
+        });
     }
 
     @Override
