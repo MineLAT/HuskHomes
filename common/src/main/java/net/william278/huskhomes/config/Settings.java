@@ -157,6 +157,9 @@ public final class Settings {
         @Comment("How long before received teleport requests expire (in seconds)")
         private int teleportRequestExpiryTime = 60;
 
+        @Comment("Whether /tpa should use the location of the sender when accepted. ")
+        private boolean strictTpaRequests = false;
+
         @Comment("Whether /tpahere should use the location of the sender when sent. "
                 + "Docs: https://william278.net/docs/huskhomes/strict-tpahere/")
         private boolean strictTpaHereRequests = true;
@@ -373,7 +376,8 @@ public final class Settings {
         private boolean crossServer = false;
 
         @Comment({"List of server in which /rtp is allowed. (Only relevant when using cross server mode WITH REDIS)",
-                "If a server is not defined here the RTP logic has no way of knowing its existence."})
+                "If a server is not defined here the RTP logic has no way of knowing its existence.",
+        "Unless specified, the default world name used as targeted world is the name of the world the player currently standing in."})
         private Map<String, List<String>> randomTargetServers = new HashMap<>(
                 Map.of("server", List.of("world", "world_nether", "world_the_end"))
         );
